@@ -127,7 +127,7 @@ for triplet in expRes:
             for rnaSumIdx in range(8):
                 if preRes[triplet][patternNo][rnaSumIdx] != 0:
                     # 写 预测位点模式
-                    printResultXls(baseRow, rowOffset, baseColumn + 4 + colOffset, patternNo, triplet, green)
+                    printResultXls(baseRow, rowOffset, baseColumn + colOffset, patternNo, triplet, green)
                     # 写 出现次数
                     ws.cell(baseRow + rowOffset + 1, baseColumn + 4 + colOffset).value = preRes[triplet][patternNo][rnaSumIdx]
                     # 预测位点等于实验位点时不输出
