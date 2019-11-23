@@ -127,17 +127,17 @@ for triplet in expRes:
             for rnaSumIdx in range(8):
                 if preRes[triplet][patternNo][rnaSumIdx] != 0:
                     # 写 预测位点模式
-                    printResultXls(baseRow, rowOffset, baseColumn + colOffset, patternNo, triplet, green)
+                    printResultXls(baseRow, rowOffset, baseColumn + 1 + colOffset, patternNo, triplet, green)
                     # 写 出现次数
-                    ws.cell(baseRow + rowOffset + 1, baseColumn + 4 + colOffset).value = preRes[triplet][patternNo][rnaSumIdx]
+                    ws.cell(baseRow + rowOffset + 1, baseColumn + 1 + 4 + colOffset).value = preRes[triplet][patternNo][rnaSumIdx]
                     # 预测位点等于实验位点时不输出
                     if preRes[triplet][patternNo][rnaSumIdx] == expSum:
                         continue
                     else:
                         # 写rna名称
-                        ws.cell(baseRow + rowOffset + 1, baseColumn + 5 + colOffset).value = '\\'.join(
+                        ws.cell(baseRow + rowOffset + 1, baseColumn + 1 + 5 + colOffset).value = '\\'.join(
                             preRes[triplet][patternNo][rnaSumIdx + 8:rnaSumIdx + 8 + preRes[triplet][patternNo][rnaSumIdx]])
-                        colOffset += 3
+                        colOffset += 4
 
             # 写完一个pattern，将行偏移加2，准备写下一个pattern
             rowOffset += 2
