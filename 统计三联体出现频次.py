@@ -2,7 +2,8 @@ import os
 import openpyxl
 from openpyxl.writer.excel import ExcelWriter
 
-filePath = r'C:\Users\lenovo\Desktop'  # r'C:\Users\user\Desktop\找三联体bindingsite的规律\无二级结构的rna结构'
+# filePath=r'C:\Users\lenovo\Desktop'                           #r'C:\Users\user\Desktop\找三联体bindingsite的规律\无二级结构的rna结构'
+filePath = r'./'  # r'C:\Users\user\Desktop\找三联体bindingsite的规律\无二级结构的rna结构'
 workBook = openpyxl.load_workbook(os.path.join(filePath, r'protein实验位点标记数据11.20.xlsx'), read_only=False)
 sheetList = workBook.get_sheet_names()
 
@@ -30,6 +31,9 @@ def rnaNameAppend(expPattern, prePattern, dict, rnaName, tripletName):
 
 
 def printResultXls(row, rowIndex, column, pattern, triplet, color):
+    """
+    根据规定的颜色输出三联体单元格
+    """
     ws.cell(row + rowIndex, column + 4).value = triplet[0]
     ws.cell(row + rowIndex, column + 5).value = triplet[1]
     ws.cell(row + rowIndex, column + 6).value = triplet[2]
@@ -50,10 +54,10 @@ def printResultXls(row, rowIndex, column, pattern, triplet, color):
         pass
 
 
-for i in sheetList:
-    print(i)
+for patternNo in sheetList:
+    print(patternNo)
 
-    curSheet = workBook[i]
+    curSheet = workBook[patternNo]
     tripletPattern = 0
     curRow = 3
     preRow = 3
@@ -67,7 +71,7 @@ for i in sheetList:
                 tripletPattern = int(curSheet.cell(curRow - 2, columnC).value) * 4 + \
                                  int(curSheet.cell(curRow - 1, columnC).value) * 2 + \
                                  int(curSheet.cell(curRow, columnC).value)
-                expRes.setdefault(tripletName, [[], [], [], [], [], [], [], []])[tripletPattern].append(i)
+                expRes.setdefault(tripletName, [[], [], [], [], [], [], [], []])[tripletPattern].append(patternNo)
                 # 预测位点统计
                 prePattern = int(curSheet.cell(curRow - 2, columnJ).value) * 4 + \
                              int(curSheet.cell(curRow - 1, columnJ).value) * 2 + \
@@ -78,7 +82,7 @@ for i in sheetList:
                                                 [0 for i in range(8)], [0 for i in range(8)]])[tripletPattern][
                     prePattern] += 1
                 # preRes[tripletName][tripletPattern].append(i)
-                rnaNameAppend(tripletPattern, prePattern, preRes, i, tripletName)
+                rnaNameAppend(tripletPattern, prePattern, preRes, patternNo, tripletName)
                 preRow += 1
         else:
             preRow = curRow
@@ -93,53 +97,60 @@ resWorkBook = openpyxl.Workbook()
 # ew=ExcelWriter(workbook=resWorkBook)
 ws = resWorkBook.create_sheet('protein')
 
-row = 2
-column = 1
-for key in expRes:
-    ws.cell(row, column).value = key
-    totalsum = 0
+baseRow = 2
+baseColumn = 1
+for triplet in expRes:
+    ws.cell(baseRow, baseColumn).value = triplet
+    totalSum = 0
     preSum = 0
-    for i in range(8):
-        rowIndex = 0
-        resStr = ''
-        totalsum += len(expRes[key][i])
-        expSum = len(expRes[key][i])
+    for patternNo in range(8):
+        expRnaConnSet = ''
+        totalSum += len(expRes[triplet][patternNo])
+        expSum = len(expRes[triplet][patternNo])
+        rowOffset = 0
         if expSum != 0:
-            for j in range(expSum):
-                resStr += expRes[key][i][j]
-                resStr += '\\'
+            for rnaIdx in range(expSum):
+                if rnaIdx == 0:
+                    expRnaConnSet += expRes[triplet][patternNo][rnaIdx]
+                else:
+                    expRnaConnSet += '\\' + expRes[triplet][patternNo][rnaIdx]
             # 写rna名称
-            ws.cell(row + rowIndex, column + 3).value = resStr
+            ws.cell(baseRow + rowOffset, baseColumn + 3).value = expRnaConnSet
 
             # 写 三联体实验位点的 不同模式以及出现次数
-            printResultXls(row, rowIndex, column, i, key, red)
-            ws.cell(row + rowIndex + 1, column + 4).value = expSum
+            printResultXls(baseRow, rowOffset, baseColumn, patternNo, triplet, red)
+            ws.cell(baseRow + rowOffset + 1, baseColumn + 4).value = expSum
 
             # ws.merge_cells(start_row=row+rowIndex+1,start_column=column+4,end_row=row+rowIndex+1,end_column=column+6)
             # 写 三联体预测位点的不同模式、对应的rna名称以及出现次数
-            for m in range(8):
-                colIndex = 3
-                if preRes[key][i][m] != 0:
+            colOffset = 3
+            for rnaSumIdx in range(8):
+                if preRes[triplet][patternNo][rnaSumIdx] != 0:
                     # 写 预测位点模式
-                    printResultXls(row, rowIndex, column + colIndex, i, key, green)
+                    printResultXls(baseRow, rowOffset, baseColumn + 4 + colOffset, patternNo, triplet, green)
                     # 写 出现次数
-                    ws.cell(row + rowIndex + 1, column + 4 + colIndex).value = preRes[key][i][m]
-                    if preRes[key][i][m] == expSum:
-                        break
+                    ws.cell(baseRow + rowOffset + 1, baseColumn + 4 + colOffset).value = preRes[triplet][patternNo][rnaSumIdx]
+                    # 预测位点等于实验位点时不输出
+                    if preRes[triplet][patternNo][rnaSumIdx] == expSum:
+                        continue
                     else:
                         # 写rna名称
-                        ws.cell(row + rowIndex + 1, column + 5 + colIndex).value = '\\'.join(
-                            preRes[key][i][m + 8:m + 8 + preRes[key][i][m]])
-                colIndex += 3
+                        ws.cell(baseRow + rowOffset + 1, baseColumn + 5 + colOffset).value = '\\'.join(
+                            preRes[triplet][patternNo][rnaSumIdx + 8:rnaSumIdx + 8 + preRes[triplet][patternNo][rnaSumIdx]])
+                        colOffset += 3
 
-            rowIndex += 1
+            # 写完一个pattern，将行偏移加2，准备写下一个pattern
+            rowOffset += 2
+            # 行基址也加2，把下一个rna往下顶
+            baseRow += 2
 
     # 写三联体出现次数
-    ws.cell(row, column + 1).value = totalsum
+    ws.cell(baseRow, baseColumn + 1).value = totalSum
     # 写带实验位点的三联体出现次数
-    ws.cell(row, column + 2).value = totalsum - len(expRes[key][0])
+    ws.cell(baseRow, baseColumn + 2).value = totalSum - len(expRes[triplet][0])
 
-    column += 1
+    # baseColumn += 1
+    baseRow += 2
 
 print('hi')
 resWorkBook.save(filePath + 'test.xlsx')
