@@ -97,6 +97,13 @@ resWorkBook = openpyxl.Workbook()
 # ew=ExcelWriter(workbook=resWorkBook)
 ws = resWorkBook.create_sheet('protein')
 
+# 写表头
+ws.cell(1, 1).value = '三联体'
+ws.cell(1, 2).value = '出现次数'
+ws.cell(1, 3).value = '有实验位点'
+ws.cell(1, 4).value = 'RNA名称'
+ws.cell(1, 5).value = '碱基序列'
+
 baseRow = 2
 baseColumn = 1
 for triplet in expRes:
