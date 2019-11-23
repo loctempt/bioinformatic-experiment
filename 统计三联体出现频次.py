@@ -54,6 +54,13 @@ def printResultXls(row, rowIndex, column, pattern, triplet, color):
         pass
 
 
+def getExpRnaNames(rnaList, pattern):
+    skip = 0
+    for idx in range(pattern):
+        skip += rnaList[idx]
+    return '\\'.join(rnaList[8 + skip: 8 + skip + rnaList[pattern]])
+
+
 for patternNo in sheetList:
     print(patternNo)
 
@@ -107,6 +114,7 @@ ws.cell(1, 5).value = '碱基序列'
 baseRow = 2
 baseColumn = 1
 for triplet in expRes:
+    oldBaseRow = baseRow
     ws.cell(baseRow, baseColumn).value = triplet
     totalSum = 0
     preSum = 0
@@ -134,16 +142,18 @@ for triplet in expRes:
             for rnaSumIdx in range(8):
                 if preRes[triplet][patternNo][rnaSumIdx] != 0:
                     # 写 预测位点模式
-                    printResultXls(baseRow, rowOffset, baseColumn + 1 + colOffset, patternNo, triplet, green)
+                    printResultXls(baseRow, rowOffset, baseColumn + 1 + colOffset, rnaSumIdx, triplet, green)
                     # 写 出现次数
                     ws.cell(baseRow + rowOffset + 1, baseColumn + 1 + 4 + colOffset).value = preRes[triplet][patternNo][rnaSumIdx]
-                    # 预测位点等于实验位点时不输出
                     if preRes[triplet][patternNo][rnaSumIdx] == expSum:
-                        continue
+                        break
                     else:
                         # 写rna名称
-                        ws.cell(baseRow + rowOffset + 1, baseColumn + 1 + 5 + colOffset).value = '\\'.join(
-                            preRes[triplet][patternNo][rnaSumIdx + 8:rnaSumIdx + 8 + preRes[triplet][patternNo][rnaSumIdx]])
+                        ws.cell(baseRow + rowOffset + 1, baseColumn + 1 + 5 + colOffset).value = getExpRnaNames(
+                            preRes[triplet][patternNo], rnaSumIdx
+                        )
+                            # '\\'.join(
+                            # preRes[triplet][patternNo][rnaSumIdx + 8:rnaSumIdx + 8 + preRes[triplet][patternNo][rnaSumIdx]])
                         colOffset += 4
 
             # 写完一个pattern，将行偏移加2，准备写下一个pattern
@@ -152,9 +162,9 @@ for triplet in expRes:
             baseRow += 2
 
     # 写三联体出现次数
-    ws.cell(baseRow, baseColumn + 1).value = totalSum
+    ws.cell(oldBaseRow, baseColumn + 1).value = totalSum
     # 写带实验位点的三联体出现次数
-    ws.cell(baseRow, baseColumn + 2).value = totalSum - len(expRes[triplet][0])
+    ws.cell(oldBaseRow, baseColumn + 2).value = totalSum - len(expRes[triplet][0])
 
     # baseColumn += 1
     baseRow += 2
